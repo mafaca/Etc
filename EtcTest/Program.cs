@@ -27,7 +27,6 @@ namespace EtcTest
 			{
 				ConsoleKeyInfo key;
 				byte[] data = File.ReadAllBytes(path);
-				EtcDecoder decoder = new EtcDecoder();
 				Stopwatch stopwatch = new Stopwatch();
 				do
 				{
@@ -35,16 +34,16 @@ namespace EtcTest
 					switch (mode)
 					{
 						case 0:
-							decoder.DecompressETC(data, width, height, bitmap.Bits);
+							EtcDecoder.DecompressETC(data, width, height, bitmap.Bits);
 							break;
 						case 1:
-							decoder.DecompressETC2(data, width, height, bitmap.Bits);
+							EtcDecoder.DecompressETC2(data, width, height, bitmap.Bits);
 							break;
 						case 2:
-							decoder.DecompressETC2A1(data, width, height, bitmap.Bits);
+							EtcDecoder.DecompressETC2A1(data, width, height, bitmap.Bits);
 							break;
 						case 3:
-							decoder.DecompressETC2A8(data, width, height, bitmap.Bits);
+							EtcDecoder.DecompressETC2A8(data, width, height, bitmap.Bits);
 							break;
 
 						default:
@@ -61,6 +60,7 @@ namespace EtcTest
 				string dirPath = Path.GetDirectoryName(path);
 				string fileName = Path.GetFileNameWithoutExtension(path);
 				string outPath = Path.Combine(dirPath, fileName + ".png");
+				bitmap.Bitmap.RotateFlip(System.Drawing.RotateFlipType.RotateNoneFlipY);
 				bitmap.Bitmap.Save(outPath, ImageFormat.Png);
 			}
 
