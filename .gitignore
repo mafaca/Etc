@@ -1,0 +1,9 @@
+**/.vs/
+**/*.*.user
+!EtcTest/EtcTest.csproj.user
+packages/
+**/packages.config
+
+Bins/
+
+*.DotSettings.user
