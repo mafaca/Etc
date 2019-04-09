@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Etc", "Etc\Etc.csproj", "{5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtcTest", "EtcTest\EtcTest.csproj", "{8D5BB055-26A8-4B48-8499-89EC9898AA55}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EtcNETStandard", "Etc\EtcNETStandard.csproj", "{D13078B4-9935-47FC-8600-B74BFD7612CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8D5BB055-26A8-4B48-8499-89EC9898AA55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D5BB055-26A8-4B48-8499-89EC9898AA55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D5BB055-26A8-4B48-8499-89EC9898AA55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D13078B4-9935-47FC-8600-B74BFD7612CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D13078B4-9935-47FC-8600-B74BFD7612CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D13078B4-9935-47FC-8600-B74BFD7612CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D13078B4-9935-47FC-8600-B74BFD7612CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
