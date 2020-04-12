@@ -40,7 +40,8 @@ int main(int argc, char *argv[])
 	if (argc < 5)
 	{
 		std::cout << "Format: {fileName} {width} {height} {mode}" << std::endl;
-		std::cout << "mode: 0 - ETC; 1 - ETC2; 2 - ETC2a1; 3 - ETC2a8" << std::endl;
+		std::cout << "mode: 0 - ETC; 1 - ETC2; 2 - ETC2a1; 3 - ETC2a8; ";
+		std::cout << "4 - EAC R; 5 - EAC signed R; 6 - EAC RG; 7 - EAC signed RG; " << std::endl;
 		std::cin.get();
 		return 0;
 	}
@@ -79,6 +80,18 @@ int main(int argc, char *argv[])
 				break;
 			case 3:
 				decode_etc2a8(input.data(), width, height, (uint32_t*)output.data());
+				break;
+			case 4:
+				decode_eac_r(input.data(), width, height, (uint32_t*)output.data());
+				break;
+			case 5:
+				decode_eac_r_sign(input.data(), width, height, (uint32_t*)output.data());
+				break;
+			case 6:
+				decode_eac_rg(input.data(), width, height, (uint32_t*)output.data());
+				break;
+			case 7:
+				decode_eac_rg_sign(input.data(), width, height, (uint32_t*)output.data());
 				break;
 
 			default:

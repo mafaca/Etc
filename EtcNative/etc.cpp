@@ -46,6 +46,10 @@ static inline uint_fast8_t clamp(const int n) {
 	return n < 0 ? 0 : n > 255 ? 255 : n;
 }
 
+static inline uint32_t clamp2047(const int n) {
+	return n < 0 ? 0 : n > 2047 ? 2047 : n;
+}
+
 static inline uint32_t applicate_color(uint_fast8_t c[3], int_fast16_t m) {
 	return color(clamp(c[0] + m), clamp(c[1] + m), clamp(c[2] + m), 255);
 }
@@ -356,6 +360,50 @@ static inline void decode_etc2a8_block(const uint8_t *data, uint32_t *outbuf) {
 	}
 }
 
+static inline void decode_eac_block(const uint8_t* data, uint8_t* outbuf) {
+	int base = 4 + data[0] * 8;
+	int data1 = data[1];
+	int ti = data1 & 0xF;
+	int mul = (data1 >> 4) * 8;
+	if (mul == 0)
+	{
+		mul = 1;
+	}
+	uint_fast64_t l =
+		data[7] | (uint_fast16_t)data[6] << 8 |
+		(uint_fast32_t)data[5] << 16 | (uint_fast32_t)data[4] << 24 |
+		(uint_fast64_t)data[3] << 32 | (uint_fast64_t)data[2] << 40;
+	int_fast8_t* table = Etc2AlphaModTable[ti];
+	for (int i = 0; i < 16; i++, l >>= 3)
+	{
+		int val = base + mul * table[l & 7];
+		val = clamp2047(val);
+		outbuf[WriteOrderTableRev[i] * 4] = (uint8_t)(val / 8);
+	}
+}
+
+static inline void decode_eac_sign_block(const uint8_t* data, uint8_t* outbuf) {
+	int base = 1023 + (int8_t)data[0] * 8;
+	int data1 = data[1];
+	int ti = data1 & 0xF;
+	int mul = (data1 >> 4) * 8;
+	if (mul == 0)
+	{
+		mul = 1;
+	}
+	uint_fast64_t l =
+		data[7] | (uint_fast16_t)data[6] << 8 |
+		(uint_fast32_t)data[5] << 16 | (uint_fast32_t)data[4] << 24 |
+		(uint_fast64_t)data[3] << 32 | (uint_fast64_t)data[2] << 40;
+	int_fast8_t* table = Etc2AlphaModTable[ti];
+	for (int i = 0; i < 16; i++, l >>= 3)
+	{
+		int val = base + mul * table[l & 7];
+		val = clamp2047(val);
+		outbuf[WriteOrderTableRev[i] * 4] = (uint8_t)(val / 8);
+	}
+}
+
 void decode_etc2(const void *data, const int w, const int h, uint32_t *image) {
 	int bcw = (w + 3) / 4;
 	int bch = (h + 3) / 4;
@@ -398,6 +446,80 @@ void decode_etc2a8(const void *data, const int w, const int h, uint32_t *image) 
 		for (int s = 0; s < bcw; s++, d += 16) {
 			decode_etc2_block(d + 8, buf);
 			decode_etc2a8_block(d, buf);
+			int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+			for (int i = 0, y = h - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+				memcpy(image + y * w + s * 4, buf + i * 4, clen);
+		}
+	}
+}
+
+void decode_eac_r(const void* data, const int w, const int h, uint32_t* image) {
+	int bcw = (w + 3) / 4;
+	int bch = (h + 3) / 4;
+	int clen_last = (w + 3) % 4 + 1;
+	uint32_t buf[16];
+	for (int i = 0; i < 16; i++)
+		buf[i] = 0xFF000000;
+	const uint8_t* d = (uint8_t*)data;
+	for (int t = 0; t < bch; t++) {
+		for (int s = 0; s < bcw; s++, d += 8) {
+			decode_eac_block(d, (uint8_t*)buf + 2);
+			int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+			for (int i = 0, y = h - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+				memcpy(image + y * w + s * 4, buf + i * 4, clen);
+		}
+	}
+}
+
+void decode_eac_r_sign(const void* data, const int w, const int h, uint32_t* image) {
+	int bcw = (w + 3) / 4;
+	int bch = (h + 3) / 4;
+	int clen_last = (w + 3) % 4 + 1;
+	uint32_t buf[16];
+	for (int i = 0; i < 16; i++)
+		buf[i] = 0xFF000000;
+	const uint8_t* d = (uint8_t*)data;
+	for (int t = 0; t < bch; t++) {
+		for (int s = 0; s < bcw; s++, d += 8) {
+			decode_eac_sign_block(d, (uint8_t*)buf + 2);
+			int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+			for (int i = 0, y = h - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+				memcpy(image + y * w + s * 4, buf + i * 4, clen);
+		}
+	}
+}
+
+void decode_eac_rg(const void* data, const int w, const int h, uint32_t* image) {
+	int bcw = (w + 3) / 4;
+	int bch = (h + 3) / 4;
+	int clen_last = (w + 3) % 4 + 1;
+	uint32_t buf[16];
+	for (int i = 0; i < 16; i++)
+		buf[i] = 0xFF000000;
+	const uint8_t* d = (uint8_t*)data;
+	for (int t = 0; t < bch; t++) {
+		for (int s = 0; s < bcw; s++, d += 16) {
+			decode_eac_block(d, (uint8_t*)buf + 2);
+			decode_eac_block(d + 8, (uint8_t*)buf + 1);
+			int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+			for (int i = 0, y = h - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+				memcpy(image + y * w + s * 4, buf + i * 4, clen);
+		}
+	}
+}
+
+void decode_eac_rg_sign(const void* data, const int w, const int h, uint32_t* image) {
+	int bcw = (w + 3) / 4;
+	int bch = (h + 3) / 4;
+	int clen_last = (w + 3) % 4 + 1;
+	uint32_t buf[16];
+	for (int i = 0; i < 16; i++)
+		buf[i] = 0xFF000000;
+	const uint8_t* d = (uint8_t*)data;
+	for (int t = 0; t < bch; t++) {
+		for (int s = 0; s < bcw; s++, d += 16) {
+			decode_eac_sign_block(d, (uint8_t*)buf + 2);
+			decode_eac_sign_block(d + 8, (uint8_t*)buf + 1);
 			int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
 			for (int i = 0, y = h - t * 4 - 1; i < 4 && y >= 0; i++, y--)
 				memcpy(image + y * w + s * 4, buf + i * 4, clen);
