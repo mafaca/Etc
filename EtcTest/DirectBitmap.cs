@@ -23,7 +23,7 @@ namespace EtcTest
 
 		public void SetPixel(int x, int y, Color color)
 		{
-			int index = x + (y * Width);
+			int index = (x + (y * Width)) * 4;
 			unchecked
 			{
 				uint value = (uint)color.ToArgb();
@@ -36,7 +36,7 @@ namespace EtcTest
 
 		public Color GetPixel(int x, int y)
 		{
-			int index = x + (y * Width);
+			int index = (x + (y * Width)) * 4;
 			uint col = BitConverter.ToUInt32(Bits, index);
 			return Color.FromArgb(unchecked((int)col));
 		}

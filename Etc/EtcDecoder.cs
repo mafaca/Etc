@@ -86,6 +86,116 @@ namespace Etc
 			}
 		}
 
+		public void DecompressEACRUnsigned(byte[] input, int width, int height, byte[] output)
+		{
+			int bcw = (width + 3) / 4;
+			int bch = (height + 3) / 4;
+			int clen_last = (width + 3) % 4 + 1;
+			int d = 0;
+			for (int i = 0; i < 16; i++)
+			{
+				m_buf8[i * 4 + 0] = 0;
+				m_buf8[i * 4 + 1] = 0;
+				m_buf8[i * 4 + 2] = 0;
+				m_buf8[i * 4 + 3] = 0xFF;
+			}
+			for (int t = 0; t < bch; t++)
+			{
+				for (int s = 0; s < bcw; s++, d += 8)
+				{
+					DecodeEacUnsignedBlock(input, d, 2);
+					int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+					for (int i = 0, y = height - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+					{
+						Buffer.BlockCopy(m_buf8, i * 4 * 4, output, y * 4 * width + s * 4 * 4, clen);
+					}
+				}
+			}
+		}
+
+		public void DecompressEACRSigned(byte[] input, int width, int height, byte[] output)
+		{
+			int bcw = (width + 3) / 4;
+			int bch = (height + 3) / 4;
+			int clen_last = (width + 3) % 4 + 1;
+			int d = 0;
+			for (int i = 0; i < 16; i++)
+			{
+				m_buf8[i * 4 + 0] = 0;
+				m_buf8[i * 4 + 1] = 0;
+				m_buf8[i * 4 + 2] = 0;
+				m_buf8[i * 4 + 3] = 0xFF;
+			}
+			for (int t = 0; t < bch; t++)
+			{
+				for (int s = 0; s < bcw; s++, d += 8)
+				{
+					DecodeEacSignedBlock(input, d, 2);
+					int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+					for (int i = 0, y = height - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+					{
+						Buffer.BlockCopy(m_buf8, i * 4 * 4, output, y * 4 * width + s * 4 * 4, clen);
+					}
+				}
+			}
+		}
+
+		public void DecompressEACRGUnsigned(byte[] input, int width, int height, byte[] output)
+		{
+			int bcw = (width + 3) / 4;
+			int bch = (height + 3) / 4;
+			int clen_last = (width + 3) % 4 + 1;
+			int d = 0;
+			for (int i = 0; i < 16; i++)
+			{
+				m_buf8[i * 4 + 0] = 0;
+				m_buf8[i * 4 + 1] = 0;
+				m_buf8[i * 4 + 2] = 0;
+				m_buf8[i * 4 + 3] = 0xFF;
+			}
+			for (int t = 0; t < bch; t++)
+			{
+				for (int s = 0; s < bcw; s++, d += 16)
+				{
+					DecodeEacUnsignedBlock(input, d + 0, 2);
+					DecodeEacUnsignedBlock(input, d + 8, 1);
+					int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+					for (int i = 0, y = height - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+					{
+						Buffer.BlockCopy(m_buf8, i * 4 * 4, output, y * 4 * width + s * 4 * 4, clen);
+					}
+				}
+			}
+		}
+
+		public void DecompressEACRGSigned(byte[] input, int width, int height, byte[] output)
+		{
+			int bcw = (width + 3) / 4;
+			int bch = (height + 3) / 4;
+			int clen_last = (width + 3) % 4 + 1;
+			int d = 0;
+			for (int i = 0; i < 16; i++)
+			{
+				m_buf8[i * 4 + 0] = 0;
+				m_buf8[i * 4 + 1] = 0;
+				m_buf8[i * 4 + 2] = 0;
+				m_buf8[i * 4 + 3] = 0xFF;
+			}
+			for (int t = 0; t < bch; t++)
+			{
+				for (int s = 0; s < bcw; s++, d += 16)
+				{
+					DecodeEacSignedBlock(input, d + 0, 2);
+					DecodeEacSignedBlock(input, d + 8, 1);
+					int clen = (s < bcw - 1 ? 4 : clen_last) * 4;
+					for (int i = 0, y = height - t * 4 - 1; i < 4 && y >= 0; i++, y--)
+					{
+						Buffer.BlockCopy(m_buf8, i * 4 * 4, output, y * 4 * width + s * 4 * 4, clen);
+					}
+				}
+			}
+		}
+
 		private void DecodeEtc1Block(byte[] data, int offset)
 		{
 			m_code[0] = (byte)(data[offset + 3] >> 5);
@@ -225,9 +335,9 @@ namespace Etc
 					{
 						for (int x = 0; x < 4; x++, i++)
 						{
-							int ri = Clamp((x * (m_c[1, 0] - m_c[0, 0]) + y * (m_c[2, 0] - m_c[0, 0]) + 4 * m_c[0, 0] + 2) >> 2);
-							int gi = Clamp((x * (m_c[1, 1] - m_c[0, 1]) + y * (m_c[2, 1] - m_c[0, 1]) + 4 * m_c[0, 1] + 2) >> 2);
-							int bi = Clamp((x * (m_c[1, 2] - m_c[0, 2]) + y * (m_c[2, 2] - m_c[0, 2]) + 4 * m_c[0, 2] + 2) >> 2);
+							int ri = Clamp255((x * (m_c[1, 0] - m_c[0, 0]) + y * (m_c[2, 0] - m_c[0, 0]) + 4 * m_c[0, 0] + 2) >> 2);
+							int gi = Clamp255((x * (m_c[1, 1] - m_c[0, 1]) + y * (m_c[2, 1] - m_c[0, 1]) + 4 * m_c[0, 1] + 2) >> 2);
+							int bi = Clamp255((x * (m_c[1, 2] - m_c[0, 2]) + y * (m_c[2, 2] - m_c[0, 2]) + 4 * m_c[0, 2] + 2) >> 2);
 							m_buf[i] = Color(ri, gi, bi, 255);
 						}
 					}
@@ -390,9 +500,9 @@ namespace Etc
 				{
 					for (int x = 0; x < 4; x++, i++)
 					{
-						int ri = Clamp((x * (m_c[1, 0] - m_c[0, 0]) + y * (m_c[2, 0] - m_c[0, 0]) + 4 * m_c[0, 0] + 2) >> 2);
-						int gi = Clamp((x * (m_c[1, 1] - m_c[0, 1]) + y * (m_c[2, 1] - m_c[0, 1]) + 4 * m_c[0, 1] + 2) >> 2);
-						int bi = Clamp((x * (m_c[1, 2] - m_c[0, 2]) + y * (m_c[2, 2] - m_c[0, 2]) + 4 * m_c[0, 2] + 2) >> 2);
+						int ri = Clamp255((x * (m_c[1, 0] - m_c[0, 0]) + y * (m_c[2, 0] - m_c[0, 0]) + 4 * m_c[0, 0] + 2) >> 2);
+						int gi = Clamp255((x * (m_c[1, 1] - m_c[0, 1]) + y * (m_c[2, 1] - m_c[0, 1]) + 4 * m_c[0, 1] + 2) >> 2);
+						int bi = Clamp255((x * (m_c[1, 2] - m_c[0, 2]) + y * (m_c[2, 2] - m_c[0, 2]) + 4 * m_c[0, 2] + 2) >> 2);
 						m_buf[i] = Color(ri, gi, bi, 255);
 					}
 				}
@@ -433,31 +543,69 @@ namespace Etc
 		
 		private void DecodeEtc2a8Block(byte[] data, int offset)
 		{
-			if ((data[offset + 1] & 0xf0) != 0)
-			{
-				byte mult = unchecked((byte)(data[offset + 1] >> 4));
-				int ti = data[offset + 1] & 0xf;
-				ulong l =
-					data[offset + 7] | (uint)data[offset + 6] << 8 |
-					(uint)data[offset + 5] << 16 | (uint)data[offset + 4] << 24 |
-					(ulong)data[offset + 3] << 32 | (ulong)data[offset + 2] << 40;
-				for (int i = 0; i < 16; i++, l >>= 3)
-				{
-					uint c = m_buf[WriteOrderTableRev[i]];
-					c &= 0x00FFFFFF;
-					c |= unchecked((uint)(Clamp(data[offset + 0] + mult * Etc2AlphaModTable[ti, l & 7]) << 24));
-					m_buf[WriteOrderTableRev[i]] = c;
-				}
-			}
-			else
+			int @base = data[offset + 0];
+			int data1 = data[offset + 1];
+			int mul = data1 >> 4;
+			if (mul == 0)
 			{
 				for (int i = 0; i < 16; i++)
 				{
 					uint c = m_buf[WriteOrderTableRev[i]];
 					c &= 0x00FFFFFF;
-					c |= unchecked((uint)(data[offset + 0] << 24));
+					c |= unchecked((uint)(@base << 24));
 					m_buf[WriteOrderTableRev[i]] = c;
 				}
+			}
+			else
+			{
+				int table = data1 & 0xF;
+				ulong l = Get6SwapedBytes(data, offset);
+				for (int i = 0; i < 16; i++, l >>= 3)
+				{
+					uint c = m_buf[WriteOrderTableRev[i]];
+					c &= 0x00FFFFFF;
+					c |= unchecked((uint)(Clamp255(@base + mul * Etc2AlphaModTable[table, l & 7]) << 24));
+					m_buf[WriteOrderTableRev[i]] = c;
+				}
+			}
+		}
+
+		private void DecodeEacUnsignedBlock(byte[] data, int offset, int channel)
+		{
+			int @base = 4 + data[offset + 0] * 8;
+			int data1 = data[offset + 1];
+			int table = data1 & 0xF;
+			int mul = (data1 >> 4) * 8;
+			if (mul == 0)
+			{
+				mul = 1;
+			}
+			ulong l = Get6SwapedBytes(data, offset);
+			DecodeEac11Block(channel, @base, table, mul, l);
+		}
+
+		private void DecodeEacSignedBlock(byte[] data, int offset, int channel)
+		{
+			int @base = 1023 + unchecked((sbyte)data[offset + 0]) * 8;
+			int data1 = data[offset + 1];
+			int table = data1 & 0xF;
+			int mul = (data1 >> 4) * 8;
+			if (mul == 0)
+			{
+				mul = 1;
+			}
+			ulong l = Get6SwapedBytes(data, offset);
+			DecodeEac11Block(channel, @base, table, mul, l);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private void DecodeEac11Block(int channel, int @base, int table, int mul, ulong l)
+		{
+			for (int i = 0; i < 16; i++, l >>= 3)
+			{
+				int val = @base + mul * Etc2AlphaModTable[table, l & 7];
+				val = Clamp(val, 0, 2047);
+				m_buf8[WriteOrderTableRev[i] * 4 + channel] = (byte)(val / 8);
 			}
 		}
 
@@ -468,21 +616,35 @@ namespace Etc
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static int Clamp(int n)
+		private static int Clamp255(int n)
 		{
 			return n < 0 ? 0 : n > 255 ? 255 : n;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static int Clamp(int n, int min, int max)
+		{
+			return n < min ? min : n > max ? max : n;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static uint ApplicateColor(byte[,] c, int o, int m)
 		{
-			return Color(Clamp(c[o, 0] + m), Clamp(c[o, 1] + m), Clamp(c[o, 2] + m), 255);
+			return Color(Clamp255(c[o, 0] + m), Clamp255(c[o, 1] + m), Clamp255(c[o, 2] + m), 255);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static uint ApplicateColorRaw(byte[,] c, int o)
 		{
 			return Color(c[o, 0], c[o, 1], c[o, 2], 255);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static ulong Get6SwapedBytes(byte[] data, int offset)
+		{
+			return data[offset + 7] | (uint)data[offset + 6] << 8 |
+					(uint)data[offset + 5] << 16 | (uint)data[offset + 4] << 24 |
+					(ulong)data[offset + 3] << 32 | (ulong)data[offset + 2] << 40;
 		}
 
 		private static readonly byte[] WriteOrderTable = { 0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15 };
@@ -537,6 +699,7 @@ namespace Etc
 		private static readonly uint[] PunchthroughMaskTable = { 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF };
 
 		private readonly uint[] m_buf = new uint[16];
+		private readonly byte[] m_buf8 = new byte[16 * 4];
 		private byte[] m_code = new byte[2];
 		byte[,] m_c = new byte[3, 3];
 	}
